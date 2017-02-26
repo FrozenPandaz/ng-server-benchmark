@@ -4,7 +4,7 @@ const fs = require('fs');
 import { Request } from 'express';
 import { NgModuleFactory, NgZone, NgModuleRef, ApplicationRef, Type } from '@angular/core';
 import { ɵgetDOM } from '@angular/platform-browser';
-import { renderModuleFactory, platformServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
+import { renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
 
 const templateCache = {};
@@ -16,37 +16,42 @@ export interface NgSetupOptions {
 
 export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
-	return function(filePath, options, callback) {
-		if(!templateCache[filePath]){
-			const file = fs.readFileSync(filePath);
-			templateCache[filePath] = file.toString();
-		}
+  return function (filePath, options, callback) {
+    try {
+      if (!templateCache[filePath]) {
+        const file = fs.readFileSync(filePath);
+        templateCache[filePath] = file.toString();
+      }
 
-    const document = templateCache[filePath];
+      const document = templateCache[filePath];
 
-    const moduleFactory = setupOptions.bootstrap[0];
-    if (!moduleFactory) {
-      throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
+      const moduleFactory = setupOptions.bootstrap[0];
+      if (!moduleFactory) {
+        throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
+      }
+
+      if (setupOptions.aot) {
+        handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback);
+        return;
+      }
+
+      throw new Error('Not supported yet');
+
+    // handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
+    } catch (e) {
+      callback(e);
     }
-
-    if (setupOptions.aot) {
-      handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback);
-      return;
-    }
-
-    handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
 	}
 }
 
 function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: (err, html) => any) {
-  const platform = platformServer([
-    {
-      provide: INITIAL_CONFIG, useValue: {
-        document: document,
-        url: req.url
-      }
+  const platform = platformDynamicServer([{
+    provide: INITIAL_CONFIG,
+    useValue: {
+      document: document,
+      url: req.url
     }
-  ])
+  }])
   platform.bootstrapModule(moduleType)
     .then(moduleRef => {
       const state = moduleRef.injector.get(PlatformState);
