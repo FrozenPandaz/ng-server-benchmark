@@ -29,7 +29,7 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
     }
 
-    if (options.aot) {
+    if (setupOptions.aot) {
       handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback);
       return;
     }
@@ -70,8 +70,10 @@ function handleRequestFancy(req: Request, document: string, moduleFactory: NgMod
       provide: INITIAL_CONFIG, useValue: {
         document: document,
         url: req.url
-    }}
-  ])
+      }
+    }
+  ]);
+
   platform.bootstrapModuleFactory(moduleFactory)
     .then(moduleRef => {
       const state = moduleRef.injector.get(PlatformState);
