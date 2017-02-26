@@ -1,16 +1,20 @@
 //hacky express wrapper thingy.
 
 const fs = require('fs');
-const path = require('path');
 import { Request } from 'express';
-import { NgModuleFactory, NgZone, NgModuleRef, ApplicationRef } from '@angular/core';
-import { DOCUMENT, ɵgetDOM } from '@angular/platform-browser';
+import { NgModuleFactory, NgZone, NgModuleRef, ApplicationRef, Type } from '@angular/core';
+import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModuleFactory, platformServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
 
 const templateCache = {};
-const getDOM = ɵgetDOM;
-export function ngExpressEngine(setupOptions) {
+
+export interface NgSetupOptions {
+  aot?: boolean;
+  bootstrap: Type<{}>[] | NgModuleFactory<{}>[];
+}
+
+export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
 	return function(filePath, options, callback) {
 		if(!templateCache[filePath]){
@@ -19,13 +23,47 @@ export function ngExpressEngine(setupOptions) {
 		}
 
     const document = templateCache[filePath];
-    const moduleFactory = setupOptions.bootstrap[0];
 
-    handleRequestFancy(options.req, document, moduleFactory, callback);
+    const moduleFactory = setupOptions.bootstrap[0];
+    if (!moduleFactory) {
+      throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
+    }
+
+    if (options.aot) {
+      handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback);
+      return;
+    }
+
+    handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
 	}
 }
 
-const platform = platformServer();
+function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: (err, html) => any) {
+  const platform = platformServer([
+    {
+      provide: INITIAL_CONFIG, useValue: {
+        document: document,
+        url: req.url
+      }
+    }
+  ])
+  platform.bootstrapModule(moduleType)
+    .then(moduleRef => {
+      const state = moduleRef.injector.get(PlatformState);
+      const appRef = moduleRef.injector.get(ApplicationRef);
+
+      appRef.isStable
+        .filter((isStable: boolean) => isStable)
+        .first()
+        .subscribe((stable) => {
+          injectCache(moduleRef);
+
+          callback(null, state.renderToString());
+          platform.destroy();
+        })
+    })
+}
+
 function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: (err, html) => any) {
   const platform = platformServer([
     {
@@ -58,7 +96,7 @@ function injectCache(moduleRef: NgModuleRef<{}>) {
     const cache = moduleRef.injector.get(UniversalCache);
     const state = moduleRef.injector.get(PlatformState);
     const document: any = state.getDocument();
-    const dom = getDOM();
+    const dom = ɵgetDOM();
     const script: HTMLScriptElement = <HTMLScriptElement> dom.createElement('script');
     const cacheString = JSON.stringify(cache.toJson());
     dom.setText(script, `window['UNIVERSAL_CACHE'] = ${cacheString}`);
