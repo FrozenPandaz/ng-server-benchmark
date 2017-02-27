@@ -34,6 +34,10 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
+      if (!setupOptions.aot) {
+        throw new Error('Not supported yet');
+      }
+
       const platformConfig: PlatformOptions = {
         document: getDocument(filePath),
         req: options.req,
@@ -43,10 +47,6 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       };
 
       const platform: PlatformRef = getPlatformServer(platformConfig);
-
-      if (!setupOptions.aot) {
-        throw new Error('Not supported yet');
-      }
 
       const moduleRefPromise: Promise<NgModuleRef<{}>> = setupOptions.aot ?
         platform.bootstrapModuleFactory(<NgModuleFactory<{}>>moduleFactory) :
