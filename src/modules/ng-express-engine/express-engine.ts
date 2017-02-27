@@ -46,7 +46,7 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         req: options.req,
         res: options.res,
         aot: setupOptions.aot,
-        providers: setupOptions.providers
+        providers: setupOptions.providers || []
       };
 
       const platform: PlatformRef = getPlatformServer(platformConfig);
