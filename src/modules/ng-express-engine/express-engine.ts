@@ -7,7 +7,7 @@ import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
 
-const templateCache = {};
+const templateCache: { [key: string]: string } = {};
 
 export interface NgSetupOptions {
   aot?: boolean;
@@ -28,13 +28,6 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
   return function (filePath, options: { req: Request, res: Response }, callback: Send) {
     try {
-      if (!templateCache[filePath]) {
-        const file = fs.readFileSync(filePath);
-        templateCache[filePath] = file.toString();
-      }
-
-      const document = templateCache[filePath];
-
       const moduleFactory = setupOptions.bootstrap[0];
 
       if (!moduleFactory) {
@@ -42,7 +35,7 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       }
 
       const platformConfig: PlatformOptions = {
-        document: document,
+        document: getDocument(filePath),
         req: options.req,
         res: options.res,
         aot: setupOptions.aot,
@@ -67,6 +60,13 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       callback(e);
     }
 	}
+}
+
+/**
+ * Get the document at the file path
+ */
+function getDocument(filePath: string): string {
+  return templateCache[filePath] = templateCache[filePath] || fs.readFileSync(filePath).toString();
 }
 
 /**
