@@ -14,9 +14,14 @@ const api = new App();
 const port = 8000;
 const baseUrl = `http://localhost:${port}`;
 
+// app.engine('html', ngExpressEngine({
+//   aot: true,
+// 	bootstrap: [ServerAppModuleNgFactory]
+// }));
+
 app.engine('html', ngExpressEngine({
-	aot: true,
-	bootstrap: [ServerAppModuleNgFactory]
+  // aot: true,
+  bootstrap: [ServerAppModule]
 }));
 
 app.set('view engine', 'html');

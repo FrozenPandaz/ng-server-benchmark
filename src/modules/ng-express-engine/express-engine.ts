@@ -1,11 +1,13 @@
 //hacky express wrapper thingy.
 
 const fs = require('fs');
-import { Request } from 'express';
-import { NgModuleFactory, NgZone, NgModuleRef, ApplicationRef, Type } from '@angular/core';
+import { Request, Send } from 'express';
+import { NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
 import { ɵgetDOM } from '@angular/platform-browser';
-import { renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
+import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
+
+import { ServerAppModule } from '../../app/server-app.module';
 
 const templateCache = {};
 
@@ -35,67 +37,64 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         return;
       }
 
-      throw new Error('Not supported yet');
+      // throw new Error('Not supported yet');
 
-    // handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
+      handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
     } catch (e) {
       callback(e);
     }
 	}
 }
 
-function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: (err, html) => any) {
-  const platform = platformDynamicServer([{
+function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: Send) {
+  const platform = getPlatformServer(req, document);
+  platform.bootstrapModule(ServerAppModule)
+    .then(moduleRef => {
+      handleModuleRef(moduleRef, callback, platform);
+    });
+}
+
+function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send) {
+  const platform = getPlatformServer(req, document);
+  platform.bootstrapModuleFactory(moduleFactory)
+    .then(moduleRef => {
+      handleModuleRef(moduleRef, callback, platform);
+    });
+}
+
+function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send, platform: PlatformRef) {
+  const state = moduleRef.injector.get(PlatformState);
+  const appRef = moduleRef.injector.get(ApplicationRef);
+
+  appRef.isStable
+    .filter((isStable: boolean) => isStable)
+    .first()
+    .subscribe((stable) => {
+      injectCache(moduleRef);
+
+      callback(null, state.renderToString());
+      platform.destroy();
+    });
+}
+
+function handleRequestBasic(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send) {
+  renderModuleFactory(moduleFactory, {
+    document: document,
+    url: req.url
+  })
+  .then(string => {
+    callback(null, string);
+  });
+}
+
+function getPlatformServer(req, document) {
+  return platformServer([{
     provide: INITIAL_CONFIG,
     useValue: {
       document: document,
       url: req.url
     }
-  }])
-  platform.bootstrapModule(moduleType)
-    .then(moduleRef => {
-      const state = moduleRef.injector.get(PlatformState);
-      const appRef = moduleRef.injector.get(ApplicationRef);
-
-      appRef.isStable
-        .filter((isStable: boolean) => isStable)
-        .first()
-        .subscribe((stable) => {
-          injectCache(moduleRef);
-
-          callback(null, state.renderToString());
-          platform.destroy();
-        })
-    })
-}
-
-function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: (err, html) => any) {
-  const platform = platformServer([
-    {
-      provide: INITIAL_CONFIG, useValue: {
-        document: document,
-        url: req.url
-      }
-    }
-  ]);
-
-  platform.bootstrapModuleFactory(moduleFactory)
-    .then(moduleRef => {
-      const state = moduleRef.injector.get(PlatformState);
-      const appRef = moduleRef.injector.get(ApplicationRef);
-
-      appRef.isStable
-        .filter((isStable: boolean) => isStable)
-        .first()
-        .subscribe(
-          (stable) => {
-            injectCache(moduleRef);
-
-            callback(null, state.renderToString());
-            platform.destroy();
-          }
-      )
-    })
+  }]);
 }
 
 function injectCache(moduleRef: NgModuleRef<{}>) {
@@ -112,14 +111,4 @@ function injectCache(moduleRef: NgModuleRef<{}>) {
   } catch (e) {
     console.error(e);
   }
-}
-
-function handleRequest(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: (err, html) => any) {
-  renderModuleFactory(moduleFactory, {
-    document: document,
-    url: req.url
-  })
-  .then(string => {
-    callback(null, string);
-  });
 }
