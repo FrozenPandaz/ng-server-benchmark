@@ -7,8 +7,6 @@ import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
 
-import { ServerAppModule } from '../../app/server-app.module';
-
 const templateCache = {};
 
 export interface NgSetupOptions {
@@ -48,7 +46,7 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
 function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: Send) {
   const platform = getPlatformServer(req, document);
-  platform.bootstrapModule(ServerAppModule)
+  platform.bootstrapModule(moduleType)
     .then(moduleRef => {
       handleModuleRef(moduleRef, callback, platform);
     });
