@@ -33,7 +33,8 @@ ROUTES.forEach(route => {
   app.get(route, (req, res) => {
     console.time(`GET: ${req.originalUrl}`);
     res.render('index', {
-      req: req
+      req: req,
+      res: res
     });
     console.timeEnd(`GET: ${req.originalUrl}`);
   });

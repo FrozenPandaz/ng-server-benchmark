@@ -1,7 +1,7 @@
 //hacky express wrapper thingy.
 
-const fs = require('fs');
-import { Request, Send } from 'express';
+import * as fs from 'fs';
+import { Request, Response, Send } from 'express';
 import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
 import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
@@ -13,11 +13,20 @@ export interface NgSetupOptions {
   aot?: boolean;
   bootstrap: Type<{}>[] | NgModuleFactory<{}>[];
   providers?: any[];
+  onBootstrapEnd?: (module: NgModuleRef<{}>) => NgModuleRef<{}>;
 }
+
+export interface PlatformOptions {
+  document: string,
+  req: Request,
+  res: Response,
+  aot: boolean,
+  providers: Provider[]
+};
 
 export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
-  return function (filePath, options, callback) {
+  return function (filePath, options: { req: Request, res: Response }, callback: Send) {
     try {
       if (!templateCache[filePath]) {
         const file = fs.readFileSync(filePath);
@@ -27,40 +36,42 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       const document = templateCache[filePath];
 
       const moduleFactory = setupOptions.bootstrap[0];
+
       if (!moduleFactory) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
-      if (setupOptions.aot) {
-        handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback, setupOptions.providers);
-        return;
+      const platformConfig: PlatformOptions = {
+        document: document,
+        req: options.req,
+        res: options.res,
+        aot: setupOptions.aot,
+        providers: setupOptions.providers
+      };
+
+      const platform: PlatformRef = getPlatformServer(platformConfig);
+
+      if (!setupOptions.aot) {
+        throw new Error('Not supported yet');
       }
 
-      throw new Error('Not supported yet');
+      const moduleRefPromise: Promise<NgModuleRef<{}>> = setupOptions.aot ?
+        platform.bootstrapModuleFactory(<NgModuleFactory<{}>>moduleFactory) :
+        platform.bootstrapModule(<Type<{}>>moduleFactory);
 
-      // handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
+      moduleRefPromise.then((moduleRef: NgModuleRef<{}>) => {
+        handleModuleRef(moduleRef, callback, platform);
+      });
+
     } catch (e) {
       callback(e);
     }
 	}
 }
 
-function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: Send, providers?: Provider[]) {
-  const platform = getPlatformServer(req, document, providers);
-  platform.bootstrapModule(moduleType)
-    .then(moduleRef => {
-      handleModuleRef(moduleRef, callback, platform);
-    });
-}
-
-function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send, providers?: Provider[]) {
-  const platform = getPlatformServer(req, document, providers);
-  platform.bootstrapModuleFactory(moduleFactory)
-    .then(moduleRef => {
-      handleModuleRef(moduleRef, callback, platform);
-    });
-}
-
+/**
+ * Handle the request with a given NgModuleRef
+ */
 function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send, platform: PlatformRef) {
   const state = moduleRef.injector.get(PlatformState);
   const appRef = moduleRef.injector.get(ApplicationRef);
@@ -76,30 +87,38 @@ function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send, platform: P
     });
 }
 
-function handleRequestBasic(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send) {
-  renderModuleFactory(moduleFactory, {
-    document: document,
-    url: req.url
-  })
-  .then(string => {
-    callback(null, string);
-  });
-}
-
-function getPlatformServer(req: Request, document: string, providers?: Provider[]) {
-  let extraProviders = (<Provider[]>[{
-    provide: INITIAL_CONFIG,
-    useValue: {
-      document: document,
-      url: req.url
+// I can't think of a way not to make a new one each time since we have to pass the url in here
+/**
+ * Gets a PlatformRef with the given initial config, compilation state, and extra providers.
+ */
+function getPlatformServer(
+  platformOptions: PlatformOptions
+): PlatformRef {
+  const extraProviders = platformOptions.providers.concat([
+    {
+      provide: INITIAL_CONFIG,
+      useValue: {
+        document: platformOptions.document,
+        url: platformOptions.req.url
+      }
+    },
+    {
+      provide: 'REQUEST',
+      useValue: platformOptions.req
+    },
+    {
+      provide: 'RESPONSE',
+      useValue: platformOptions.res
     }
-  }]);
-  if (providers) {
-    extraProviders = extraProviders.concat(providers);
-  }
-  return platformServer(extraProviders);
+  ]);
+  return platformOptions.aot ?
+    platformServer(extraProviders) :
+    platformDynamicServer(extraProviders);
 }
 
+/**
+ * Inject the Universal Cache into the bottom of the <head>
+ */
 function injectCache(moduleRef: NgModuleRef<{}>) {
   try {
     const cache = moduleRef.injector.get(UniversalCache);
