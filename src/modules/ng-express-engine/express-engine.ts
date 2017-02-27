@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 import { Request, Send } from 'express';
-import { NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
+import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
 import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { UniversalCache } from '../universal-cache/universal-cache';
@@ -12,6 +12,7 @@ const templateCache = {};
 export interface NgSetupOptions {
   aot?: boolean;
   bootstrap: Type<{}>[] | NgModuleFactory<{}>[];
+  providers?: any[];
 }
 
 export function ngExpressEngine(setupOptions: NgSetupOptions) {
@@ -31,29 +32,29 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       }
 
       if (setupOptions.aot) {
-        handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback);
+        handleRequestFancy(options.req, document, <NgModuleFactory<{}>>moduleFactory, callback, setupOptions.providers);
         return;
       }
 
-      // throw new Error('Not supported yet');
+      throw new Error('Not supported yet');
 
-      handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
+      // handleRequestNotAot(options.req, document, <Type<{}>> moduleFactory, callback);
     } catch (e) {
       callback(e);
     }
 	}
 }
 
-function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: Send) {
-  const platform = getPlatformServer(req, document);
+function handleRequestNotAot(req: Request, document: string, moduleType: Type<{}>, callback: Send, providers?: Provider[]) {
+  const platform = getPlatformServer(req, document, providers);
   platform.bootstrapModule(moduleType)
     .then(moduleRef => {
       handleModuleRef(moduleRef, callback, platform);
     });
 }
 
-function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send) {
-  const platform = getPlatformServer(req, document);
+function handleRequestFancy(req: Request, document: string, moduleFactory: NgModuleFactory<{}>, callback: Send, providers?: Provider[]) {
+  const platform = getPlatformServer(req, document, providers);
   platform.bootstrapModuleFactory(moduleFactory)
     .then(moduleRef => {
       handleModuleRef(moduleRef, callback, platform);
@@ -85,14 +86,18 @@ function handleRequestBasic(req: Request, document: string, moduleFactory: NgMod
   });
 }
 
-function getPlatformServer(req, document) {
-  return platformServer([{
+function getPlatformServer(req: Request, document: string, providers?: Provider[]) {
+  let extraProviders = (<Provider[]>[{
     provide: INITIAL_CONFIG,
     useValue: {
       document: document,
       url: req.url
     }
   }]);
+  if (providers) {
+    extraProviders = extraProviders.concat(providers);
+  }
+  return platformServer(extraProviders);
 }
 
 function injectCache(moduleRef: NgModuleRef<{}>) {
