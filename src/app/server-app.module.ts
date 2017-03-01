@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { ServerModule } from '@angular/platform-server';
-import { ServerUniversalCacheModule } from '../modules/universal-cache/server-universal-cache.module';
+import { ServerTransferStateModule } from '../modules/transfer-state/server-transfer-state.module';
 import { AppComponent } from './app.component';
 import { AppModule } from './app.module';
 
@@ -8,7 +8,7 @@ import { AppModule } from './app.module';
   bootstrap: [AppComponent],
   imports: [
     ServerModule,
-    ServerUniversalCacheModule,
+    ServerTransferStateModule,
 	  AppModule
   ],
   providers: [
