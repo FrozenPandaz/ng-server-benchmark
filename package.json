@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npm run build && npm run server",
     "build": "webpack",
+    "build:ngc": "ngc",
     "build:prod": "webpack -p",
     "server": "nodemon dist/server.js",
     "watch": "webpack --watch"

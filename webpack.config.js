@@ -1,23 +1,14 @@
 const ngtools = require('@ngtools/webpack');
 const webpackMerge = require('webpack-merge');
 
-const serverConfig = {
-  entry: './src/main.server.ts',
+const commonConfig = {
   devtool: 'source-map',
 	resolve: {
     extensions: ['.ts', '.js']
   },
-	target: 'node',
 	output: {
-		path: 'dist',
-		filename: 'server.js'
+		path: 'dist'
 	},
-	plugins: [
-		new ngtools.AotPlugin({
-      tsConfigPath: './tsconfig.json',
-      skipCodeGeneration: true
-		})
-	],
 	module: {
 		rules: [
 			{
@@ -25,15 +16,33 @@ const serverConfig = {
         loader: '@ngtools/webpack',
       }
 		]
-	}
+  }
 };
 
-const clientConfig = webpackMerge({}, serverConfig, {
+const serverConfig = webpackMerge({}, commonConfig, {
+  entry: './src/main.server.ts',
+  output: {
+    filename: 'server.js'
+  },
+  target: 'node',
+  plugins: [
+    new ngtools.AotPlugin({
+      tsConfigPath: './src/tsconfig.server.json'
+    })
+  ]
+});
+
+const clientConfig = webpackMerge({}, commonConfig, {
   entry:  './src/main.browser.ts',
   output: {
     filename: 'client.js'
   },
-  target: 'web'
+  target: 'web',
+  plugins: [
+    new ngtools.AotPlugin({
+      tsConfigPath: './src/tsconfig.browser.json'
+    })
+  ]
 });
 
 module.exports = [clientConfig, serverConfig];
