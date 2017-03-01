@@ -15,9 +15,14 @@ const port = 8000;
 const baseUrl = `http://localhost:${port}`;
 
 app.engine('html', ngExpressEngine({
-	baseUrl: baseUrl,
-	bootstrap: [ServerAppModuleNgFactory]
+  aot: true,
+  bootstrap: [ServerAppModuleNgFactory]
 }));
+
+// app.engine('html', ngExpressEngine({
+//   // aot: true,
+//   bootstrap: [ServerAppModule]
+// }));
 
 app.set('view engine', 'html');
 app.set('views', 'src');
@@ -28,7 +33,8 @@ ROUTES.forEach(route => {
   app.get(route, (req, res) => {
     console.time(`GET: ${req.originalUrl}`);
     res.render('index', {
-      req: req
+      req: req,
+      res: res
     });
     console.timeEnd(`GET: ${req.originalUrl}`);
   });
