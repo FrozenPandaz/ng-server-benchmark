@@ -15,7 +15,6 @@ const port = 8000;
 const baseUrl = `http://localhost:${port}`;
 
 app.engine('html', ngExpressEngine({
-  aot: true,
   bootstrap: [ServerAppModule]
 }));
 
