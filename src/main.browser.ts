@@ -1,7 +1,8 @@
 import 'zone.js/dist/zone';
-import 'reflect-metadata';
 import 'rxjs/Rx';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { platformBrowser } from '@angular/platform-browser';
 import { BrowserAppModule } from './app/browser-app.module';
+import { BrowserAppModuleNgFactory } from './ngfactory/src/app/browser-app.module.ngfactory';
 
-platformBrowserDynamic().bootstrapModule(BrowserAppModule);
+platformBrowser()
+  .bootstrapModuleFactory(BrowserAppModuleNgFactory);

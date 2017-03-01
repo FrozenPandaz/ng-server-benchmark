@@ -14,8 +14,7 @@ const serverConfig = {
 	},
 	plugins: [
 		new ngtools.AotPlugin({
-      tsConfigPath: './tsconfig.json',
-      skipCodeGeneration: true
+			tsConfigPath: './tsconfig.json',
 		})
 	],
 	module: {
