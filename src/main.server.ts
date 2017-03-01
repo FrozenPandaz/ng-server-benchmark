@@ -1,9 +1,9 @@
 import 'zone.js/dist/zone-node';
+import 'reflect-metadata';
 import 'rxjs/Rx';
 import * as express from 'express';
 import { platformServer, renderModuleFactory } from '@angular/platform-server';
 import { ServerAppModule } from './app/server-app.module';
-import { ServerAppModuleNgFactory } from './ngfactory/src/app/server-app.module.ngfactory';
 import { ngExpressEngine } from './modules/ng-express-engine/express-engine';
 import { ROUTES } from './routes';
 import { App } from './api/app';
@@ -15,14 +15,8 @@ const port = 8000;
 const baseUrl = `http://localhost:${port}`;
 
 app.engine('html', ngExpressEngine({
-  aot: true,
-  bootstrap: [ServerAppModuleNgFactory]
+  bootstrap: [ServerAppModule]
 }));
-
-// app.engine('html', ngExpressEngine({
-//   // aot: true,
-//   bootstrap: [ServerAppModule]
-// }));
 
 app.set('view engine', 'html');
 app.set('views', 'src');

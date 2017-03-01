@@ -1,5 +1,4 @@
 //hacky express wrapper thingy.
-
 import * as fs from 'fs';
 import { Request, Response, Send } from 'express';
 import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
@@ -32,10 +31,6 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
       if (!moduleFactory) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
-      }
-
-      if (!setupOptions.aot) {
-        throw new Error('Not supported yet');
       }
 
       const platformConfig: PlatformOptions = {
