@@ -5,7 +5,7 @@ import { Request, Response, Send } from 'express';
 import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
 import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
-import { UniversalCache } from '../universal-cache/universal-cache';
+import { TransferState } from '../transfer-state/transfer-state';
 
 const templateCache: { [key: string]: string } = {};
 
@@ -121,13 +121,13 @@ function getPlatformServer(
  */
 function injectCache(moduleRef: NgModuleRef<{}>) {
   try {
-    const cache = moduleRef.injector.get(UniversalCache);
+    const transferState = moduleRef.injector.get(TransferState);
     const state = moduleRef.injector.get(PlatformState);
     const document: any = state.getDocument();
     const dom = ɵgetDOM();
     const script: HTMLScriptElement = <HTMLScriptElement> dom.createElement('script');
-    const cacheString = JSON.stringify(cache.toJson());
-    dom.setText(script, `window['UNIVERSAL_CACHE'] = ${cacheString}`);
+    const transferStateString = JSON.stringify(transferState.toJson());
+    dom.setText(script, `window['TRANSFER_STATE'] = ${transferStateString}`);
     const head = dom.querySelector(document, 'head');
     dom.appendChild(head, script);
   } catch (e) {
