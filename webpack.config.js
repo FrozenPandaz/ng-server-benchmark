@@ -27,8 +27,7 @@ const serverConfig = webpackMerge({}, commonConfig, {
   target: 'node',
   plugins: [
     new ngtools.AotPlugin({
-      tsConfigPath: './src/tsconfig.server.json',
-      skipCodeGeneration: true
+      tsConfigPath: './src/tsconfig.server.json'
     })
   ]
 });
@@ -46,4 +45,4 @@ const clientConfig = webpackMerge({}, commonConfig, {
   ]
 });
 
-module.exports = [clientConfig, serverConfig];
+module.exports = [serverConfig];
