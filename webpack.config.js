@@ -45,4 +45,4 @@ const clientConfig = webpackMerge({}, commonConfig, {
   ]
 });
 
-module.exports = [serverConfig];
+module.exports = [serverConfig, clientConfig];
