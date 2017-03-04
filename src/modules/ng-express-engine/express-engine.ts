@@ -33,12 +33,11 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
-      const document = getDocument(filePath);
       const extraProviders = setupOptions.providers.concat([
         {
           provide: INITIAL_CONFIG,
           useValue: {
-            document: document,
+            document: getDocument(filePath),
             url: options.req.url
           }
         },
