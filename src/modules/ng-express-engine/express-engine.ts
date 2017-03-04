@@ -28,8 +28,6 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
-      setupOptions.providers.push();
-
       const extraProviders = setupOptions.providers.concat(
         getReqResProviders(options.req, options.res),
         [
