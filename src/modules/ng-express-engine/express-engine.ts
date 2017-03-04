@@ -5,13 +5,13 @@ import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, Applicatio
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { TransferState } from '../transfer-state/transfer-state';
 
-const templateCache: { [key: string]: string } = {};
-
 export interface NgSetupOptions {
   aot?: boolean;
   bootstrap: Type<{}>[] | NgModuleFactory<{}>[];
   providers?: any[];
 }
+
+const templateCache: { [key: string]: string } = {};
 
 /**
  * This is an express engine for handling Angular Applications
