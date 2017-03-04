@@ -56,8 +56,8 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         platformDynamicServer(extraProviders).bootstrapModule(<Type<{}>>moduleFactory);
 
       moduleRefPromise.then((moduleRef: NgModuleRef<{}>) => {
-        handleModuleRef(moduleRef, callback);
-      });
+          handleModuleRef(moduleRef, callback);
+        });
 
     } catch (e) {
       callback(e);
