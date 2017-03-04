@@ -6,6 +6,13 @@ const tsconfigs = {
   server: root('./src/tsconfig.server.json')
 };
 
+/**
+ * Generates a AotPlugin for @ngtools/webpack
+ *
+ * @param {string} platform Should either be client or server
+ * @param {boolean} aot Enables/Disables AoT Compilation
+ * @returns
+ */
 function getAotPlugin(platform, aot) {
   return new AotPlugin({
     tsConfigPath: tsconfigs[platform],
