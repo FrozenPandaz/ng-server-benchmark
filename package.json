@@ -8,6 +8,10 @@
     "build": "webpack",
     "build:aot": "webpack --env.aot --env.client & webpack --env.aot --env.server",
     "build:prod": "webpack --env.aot --env.client -p & webpack --env.aot --env.server",
+    "prebuild": "npm run clean",
+    "prebuild:aot": "npm run clean",
+    "prebuild:prod": "npm run clean",
+    "clean": "rimraf dist",
     "server": "nodemon dist/server.js",
     "watch": "webpack --watch"
   },
@@ -35,6 +39,7 @@
     "@types/express": "^4.0.35",
     "@types/node": "^7.0.5",
     "nodemon": "^1.11.0",
+    "rimraf": "^2.6.1",
     "typescript": "^2.2.1",
     "webpack": "^2.2.1",
     "webpack-merge": "^3.0.0"
