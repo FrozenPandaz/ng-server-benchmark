@@ -13,14 +13,6 @@ export interface NgSetupOptions {
   providers?: any[];
 }
 
-export interface PlatformOptions {
-  document: string,
-  req: Request,
-  res: Response,
-  aot: boolean,
-  providers: Provider[]
-};
-
 /**
  * This is an express engine for handling Angular Applications
  */
@@ -36,23 +28,19 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
-      const extraProviders = setupOptions.providers.concat([
-        {
-          provide: INITIAL_CONFIG,
-          useValue: {
-            document: getDocument(filePath),
-            url: options.req.url
+      setupOptions.providers.push();
+
+      const extraProviders = setupOptions.providers.concat(
+        getReqResProviders(options.req, options.res),
+        [
+          {
+            provide: INITIAL_CONFIG,
+            useValue: {
+              document: getDocument(filePath),
+              url: options.req.url
+            }
           }
-        },
-        {
-          provide: 'REQUEST',
-          useValue: options.req
-        },
-        {
-          provide: 'RESPONSE',
-          useValue: options.res
-        }
-      ]);
+        ]);
 
       const moduleRefPromise = setupOptions.aot ?
         platformServer(extraProviders).bootstrapModuleFactory(<NgModuleFactory<{}>>moduleFactory) :
@@ -66,6 +54,19 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
       callback(e);
     }
 	}
+}
+
+function getReqResProviders(req: Request, res: Response) {
+  return [
+    {
+      provide: 'REQUEST',
+      useValue: req
+    },
+    {
+      provide: 'RESPONSE',
+      useValue: res
+    }
+  ];
 }
 
 /**
