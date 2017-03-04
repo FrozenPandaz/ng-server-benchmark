@@ -12,7 +12,6 @@ export interface NgSetupOptions {
   aot?: boolean;
   bootstrap: Type<{}>[] | NgModuleFactory<{}>[];
   providers?: any[];
-  onBootstrapEnd?: (module: NgModuleRef<{}>) => NgModuleRef<{}>;
 }
 
 export interface PlatformOptions {
@@ -25,6 +24,8 @@ export interface PlatformOptions {
 
 export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
+  setupOptions.providers = setupOptions.providers || [];
+
   return function (filePath, options: { req: Request, res: Response }, callback: Send) {
     try {
       const moduleFactory = setupOptions.bootstrap[0];
@@ -33,22 +34,31 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
         throw new Error('You must pass in a NgModule or NgModuleFactory to be bootstrapped');
       }
 
-      const platformConfig: PlatformOptions = {
-        document: getDocument(filePath),
-        req: options.req,
-        res: options.res,
-        aot: setupOptions.aot,
-        providers: setupOptions.providers || []
-      };
+      const document = getDocument(filePath);
+      const extraProviders = setupOptions.providers.concat([
+        {
+          provide: INITIAL_CONFIG,
+          useValue: {
+            document: document,
+            url: options.req.url
+          }
+        },
+        {
+          provide: 'REQUEST',
+          useValue: options.req
+        },
+        {
+          provide: 'RESPONSE',
+          useValue: options.res
+        }
+      ]);
 
-      const platform: PlatformRef = getPlatformServer(platformConfig);
-
-      const moduleRefPromise: Promise<NgModuleRef<{}>> = setupOptions.aot ?
-        platform.bootstrapModuleFactory(<NgModuleFactory<{}>>moduleFactory) :
-        platform.bootstrapModule(<Type<{}>>moduleFactory);
+      const moduleRefPromise = setupOptions.aot ?
+        platformServer(extraProviders).bootstrapModuleFactory(<NgModuleFactory<{}>>moduleFactory) :
+        platformDynamicServer(extraProviders).bootstrapModule(<Type<{}>>moduleFactory);
 
       moduleRefPromise.then((moduleRef: NgModuleRef<{}>) => {
-        handleModuleRef(moduleRef, callback, platform);
+        handleModuleRef(moduleRef, callback);
       });
 
     } catch (e) {
@@ -67,7 +77,7 @@ function getDocument(filePath: string): string {
 /**
  * Handle the request with a given NgModuleRef
  */
-function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send, platform: PlatformRef) {
+function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send) {
   const state = moduleRef.injector.get(PlatformState);
   const appRef = moduleRef.injector.get(ApplicationRef);
 
@@ -78,37 +88,8 @@ function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send, platform: P
       injectCache(moduleRef);
 
       callback(null, state.renderToString());
-      platform.destroy();
+      moduleRef.destroy();
     });
-}
-
-// I can't think of a way not to make a new one each time since we have to pass the url in here
-/**
- * Gets a PlatformRef with the given initial config, compilation state, and extra providers.
- */
-function getPlatformServer(
-  platformOptions: PlatformOptions
-): PlatformRef {
-  const extraProviders = platformOptions.providers.concat([
-    {
-      provide: INITIAL_CONFIG,
-      useValue: {
-        document: platformOptions.document,
-        url: platformOptions.req.url
-      }
-    },
-    {
-      provide: 'REQUEST',
-      useValue: platformOptions.req
-    },
-    {
-      provide: 'RESPONSE',
-      useValue: platformOptions.res
-    }
-  ]);
-  return platformOptions.aot ?
-    platformServer(extraProviders) :
-    platformDynamicServer(extraProviders);
 }
 
 /**
