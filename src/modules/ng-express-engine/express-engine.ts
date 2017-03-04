@@ -21,6 +21,9 @@ export interface PlatformOptions {
   providers: Provider[]
 };
 
+/**
+ * This is an express engine for handling Angular Applications
+ */
 export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
   setupOptions.providers = setupOptions.providers || [];

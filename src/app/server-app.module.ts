@@ -17,7 +17,8 @@ export class ServerAppModule {
 
   constructor(private transferState: TransferState) { }
 
-  ngOnBootstrap() {
+  // Gotcha
+  ngOnBootstrap = () => {
     this.transferState.inject();
   }
 }
