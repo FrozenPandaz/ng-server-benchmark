@@ -3,9 +3,10 @@ const webpackMerge = require('webpack-merge');
 const commonPartial = require('./webpack/webpack.common');
 const clientPartial = require('./webpack/webpack.client');
 const serverPartial = require('./webpack/webpack.server');
+const prodPartial = require('./webpack/webpack.prod');
 const { getAotPlugin } = require('./webpack/webpack.aot');
 
-module.exports = function (options) {
+module.exports = function (options, webpackOptions) {
   options = options || {};
 
   if (options.aot) {
@@ -19,11 +20,15 @@ module.exports = function (options) {
     ]
   });
 
-  const clientConfig = webpackMerge({}, commonPartial, clientPartial, {
+  let clientConfig = webpackMerge({}, commonPartial, clientPartial, {
     plugins: [
       getAotPlugin('client', !!options.aot)
     ]
   });
+
+  if (webpackOptions.p) {
+    clientConfig = webpackMerge({}, clientConfig, prodPartial);
+  }
 
   const configs = [];
   if (!options.aot) {
