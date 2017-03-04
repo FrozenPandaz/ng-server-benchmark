@@ -2,7 +2,6 @@
 import * as fs from 'fs';
 import { Request, Response, Send } from 'express';
 import { Provider, NgModuleFactory, NgZone, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
-import { ɵgetDOM } from '@angular/platform-browser';
 import { renderModule, renderModuleFactory, platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 import { TransferState } from '../transfer-state/transfer-state';
 
@@ -85,28 +84,9 @@ function handleModuleRef(moduleRef: NgModuleRef<{}>, callback: Send) {
     .filter((isStable: boolean) => isStable)
     .first()
     .subscribe((stable) => {
-      injectCache(moduleRef);
+      moduleRef.instance['ngOnBootstrap']();
 
       callback(null, state.renderToString());
       moduleRef.destroy();
     });
-}
-
-/**
- * Inject the Universal Cache into the bottom of the <head>
- */
-function injectCache(moduleRef: NgModuleRef<{}>) {
-  try {
-    const transferState = moduleRef.injector.get(TransferState);
-    const state = moduleRef.injector.get(PlatformState);
-    const document: any = state.getDocument();
-    const dom = ɵgetDOM();
-    const script: HTMLScriptElement = <HTMLScriptElement> dom.createElement('script');
-    const transferStateString = JSON.stringify(transferState.toJson());
-    dom.setText(script, `window['TRANSFER_STATE'] = ${transferStateString}`);
-    const body = dom.querySelector(document, 'body');
-    dom.appendChild(body, script);
-  } catch (e) {
-    console.error(e);
-  }
 }
