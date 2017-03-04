@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && npm run server",
     "build": "webpack",
-    "build:ngc": "ngc",
+    "build:aot": "webpack --env.aot --env.client && webpack --env.aot --env.server",
     "build:prod": "webpack -p",
     "server": "nodemon dist/server.js",
     "watch": "webpack --watch"

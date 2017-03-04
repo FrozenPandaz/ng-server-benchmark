@@ -16,5 +16,6 @@ module.exports = {
         loader: '@ngtools/webpack',
       }
     ]
-  }
+  },
+  plugins: []
 };

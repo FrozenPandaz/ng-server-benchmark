@@ -10,11 +10,5 @@ module.exports = {
   output: {
     filename: 'client.js'
   },
-  target: 'web',
-  plugins: [
-    new AotPlugin({
-      tsConfigPath: root('./src/tsconfig.browser.json'),
-      skipCodeGeneration: true
-    })
-  ]
+  target: 'web'
 };
