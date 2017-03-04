@@ -20,7 +20,7 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
 
   setupOptions.providers = setupOptions.providers || [];
 
-  return function (filePath, options: { req: Request, res: Response }, callback: Send) {
+  return function (filePath, options: { req: Request, res?: Response }, callback: Send) {
     try {
       const moduleFactory = setupOptions.bootstrap[0];
 
@@ -54,17 +54,20 @@ export function ngExpressEngine(setupOptions: NgSetupOptions) {
 	}
 }
 
-function getReqResProviders(req: Request, res: Response) {
-  return [
+function getReqResProviders(req: Request, res: Response): Provider[] {
+  const providers: Provider[] = [
     {
       provide: 'REQUEST',
       useValue: req
-    },
-    {
-      provide: 'RESPONSE',
-      useValue: res
     }
   ];
+  if (res) {
+    providers.push({
+      provide: 'RESPONSE',
+      useValue: res
+    });
+  }
+  return providers;
 }
 
 /**
