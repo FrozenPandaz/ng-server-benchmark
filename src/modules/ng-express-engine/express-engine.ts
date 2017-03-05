@@ -4,12 +4,18 @@ import { Request, Response, Send } from 'express';
 import { Provider, NgModuleFactory, NgModuleRef, PlatformRef, ApplicationRef, Type } from '@angular/core';
 import { platformServer, platformDynamicServer, PlatformState, INITIAL_CONFIG } from '@angular/platform-server';
 
+/**
+ * These are the allowed options for the engine
+ */
 export interface NgSetupOptions {
   aot?: boolean;
   bootstrap: Type<{}> | NgModuleFactory<{}>;
   providers?: Provider[];
 }
 
+/**
+ * This holds a cached version of each index used.
+ */
 const templateCache: { [key: string]: string } = {};
 
 /**
