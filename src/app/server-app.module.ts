@@ -3,6 +3,7 @@ import { ServerModule } from '@angular/platform-server';
 import { ServerTransferStateModule } from '../modules/transfer-state/server-transfer-state.module';
 import { AppComponent } from './app.component';
 import { AppModule } from './app.module';
+import { TransferState } from '../modules/transfer-state/transfer-state';
 
 @NgModule({
   bootstrap: [AppComponent],
@@ -10,9 +11,14 @@ import { AppModule } from './app.module';
     ServerModule,
     ServerTransferStateModule,
 	  AppModule
-  ],
-  providers: [
-	//   { provide: NgModuleFactoryLoader, useClass: ServerRouterLoader }
   ]
 })
-export class ServerAppModule {}
+export class ServerAppModule {
+
+  constructor(private transferState: TransferState) { }
+
+  // Gotcha
+  ngOnBootstrap = () => {
+    this.transferState.inject();
+  }
+}
