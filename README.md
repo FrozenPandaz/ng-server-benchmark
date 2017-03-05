@@ -1,6 +1,4 @@
-# Minimal Starter with Angular
-
-## Angular on both Server and Browser Platforms
+# Minimal Starter with Angular on both Server and Browser Platforms
 
 ## Get Started
 ```sh
@@ -10,6 +8,13 @@ npm run start
 * Terminal 1: ```npm run watch```
 * Wait for the build to finish
 * Terminal 2: ```npm run server```
+
+## Prod mode
+Includes AoT
+```sh
+npm run build:prod
+npm run server
+```
 
 Based on https://github.com/robwormald/ng-universal-demo
 
