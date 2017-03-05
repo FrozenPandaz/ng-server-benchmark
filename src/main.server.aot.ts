@@ -20,7 +20,7 @@ const baseUrl = `http://localhost:${port}`;
 
 app.engine('html', ngExpressEngine({
   aot: true,
-  bootstrap: [ServerAppModuleNgFactory]
+  bootstrap: ServerAppModuleNgFactory
 }));
 
 app.set('view engine', 'html');
