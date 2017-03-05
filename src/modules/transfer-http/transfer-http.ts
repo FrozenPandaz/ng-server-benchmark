@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { ConnectionBackend, Http, Request, RequestOptions, RequestOptionsArgs, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { UniversalCache } from '../universal-cache/universal-cache';
+import { TransferState } from '../transfer-state/transfer-state';
+
 @Injectable()
-export class CachedHttp {
-  constructor(private http: Http, protected cache: UniversalCache) {}
+export class TransferHttp {
+  constructor(private http: Http, protected transferState: TransferState) {}
 
   request(uri: string | Request, options?: RequestOptionsArgs): Observable<any> {
     return this.getData(uri, options, (url: string, options: RequestOptionsArgs) => {
@@ -125,10 +126,10 @@ export class CachedHttp {
   }
 
   private setCache(key, data) {
-    return this.cache.set(key, data);
+    return this.transferState.set(key, data);
   }
 
   private getFromCache(key): any {
-    return this.cache.get(key);
+    return this.transferState.get(key);
   }
 }

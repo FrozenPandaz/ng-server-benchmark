@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { Http, HttpModule } from '@angular/http';
-import { CachedHttp } from './cached-http';
+import { TransferHttp } from './transfer-http';
 
 @NgModule({
   providers: [
-    CachedHttp
+    TransferHttp
   ]
 })
-export class CachedHttpModule {}
+export class TransferHttpModule {}

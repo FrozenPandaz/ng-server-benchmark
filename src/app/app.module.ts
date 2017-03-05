@@ -5,18 +5,18 @@ import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { HomeView } from './home/home-view.component';
-import { CachedHttpModule } from '../modules/cached-http/cached-http.module';
+import { TransferHttpModule } from '../modules/transfer-http/transfer-http.module';
 
 
 @NgModule({
 	imports: [
     CommonModule,
     HttpModule,
-    CachedHttpModule,
-		RouterModule.forRoot([
-			{ path: '', component: HomeView, pathMatch: 'full'},
-			{ path: 'lazy', loadChildren: './+lazy/lazy.module#LazyModule'}
-		])
+    TransferHttpModule,
+    RouterModule.forRoot([
+      { path: '', component: HomeView, pathMatch: 'full'},
+      { path: 'lazy', loadChildren: './+lazy/lazy.module#LazyModule'}
+    ])
 	],
   providers: [
     { provide: APP_BASE_HREF, useValue: '/'}
