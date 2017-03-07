@@ -3,11 +3,12 @@ import { TransferState } from '../modules/transfer-state/transfer-state';
 
 @Component({
 	selector: 'demo-app',
-	template: `
-	  <h1>Universal Demo</h1>
-	  <a routerLink="/">Home</a>
-	  <a routerLink="/lazy">Lazy</a>
-	  <router-outlet></router-outlet>
+  template: `
+    <table>
+      <tr *ngFor="let node of nodes">
+        <td>{{node}}</td>
+      </tr>
+    </table>
 	`,
   styles: [
     `h1 {
@@ -16,8 +17,11 @@ import { TransferState } from '../modules/transfer-state/transfer-state';
   ]
 })
 export class AppComponent implements OnInit {
-  constructor(private cache: TransferState) {}
+  nodes = [];
+  constructor() {}
   ngOnInit() {
-    this.cache.set('cached', true);
+    for (let i = 0; i < 1000; i++) {
+      this.nodes.push('Hello ' + i);
+    }
   }
 }

@@ -9,16 +9,15 @@ import { TransferState } from '../modules/transfer-state/transfer-state';
   bootstrap: [AppComponent],
   imports: [
     ServerModule,
-    ServerTransferStateModule,
 	  AppModule
   ]
 })
 export class ServerAppModule {
 
-  constructor(private transferState: TransferState) { }
+  constructor() { }
 
   // Gotcha
-  ngOnBootstrap = () => {
-    this.transferState.inject();
-  }
+  // ngOnBootstrap = () => {
+  //   this.transferState.inject();
+  // }
 }

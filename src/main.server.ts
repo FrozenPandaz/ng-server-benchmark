@@ -25,19 +25,19 @@ app.use('/', express.static('dist', {index: false}));
 
 ROUTES.forEach(route => {
   app.get(route, (req, res) => {
-    console.time(`GET: ${req.originalUrl}`);
+    // console.time(`GET: ${req.originalUrl}`);
     res.render('index', {
       req: req,
       res: res
     });
-    console.timeEnd(`GET: ${req.originalUrl}`);
+    // console.timeEnd(`GET: ${req.originalUrl}`);
   });
 });
 
 app.get('/data', (req, res) => {
-  console.time(`GET: ${req.originalUrl}`);
+  // console.time(`GET: ${req.originalUrl}`);
   res.json(api.getData());
-  console.timeEnd(`GET: ${req.originalUrl}`);
+  // console.timeEnd(`GET: ${req.originalUrl}`);
 });
 
 app.listen(8000,() => {
