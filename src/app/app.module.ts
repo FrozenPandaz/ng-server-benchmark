@@ -10,13 +10,7 @@ import { TransferHttpModule } from '../modules/transfer-http/transfer-http.modul
 
 @NgModule({
 	imports: [
-    CommonModule,
-    HttpModule,
-    TransferHttpModule,
-    RouterModule.forRoot([
-      { path: '', component: HomeView, pathMatch: 'full'},
-      { path: 'lazy', loadChildren: './+lazy/lazy.module#LazyModule'}
-    ])
+    CommonModule
 	],
   providers: [
     { provide: APP_BASE_HREF, useValue: '/'}
